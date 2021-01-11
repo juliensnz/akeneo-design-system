@@ -6,7 +6,7 @@ const https = require('https');
 
 const getIsPRStillOpen = (prID) => {
   return new Promise((resolve, reject) => {
-    https.get(`https://github.com/akeneo/akeneo-design-system/tree/gh-pages${prID}`, function(res) {
+    https.get(`https://github.com/akeneo/pim-community-dev/pull/${prID}`, function(res) {
       resolve(404 !== res.statusCode);
     }).on('error', function(e) {
       reject(e)
