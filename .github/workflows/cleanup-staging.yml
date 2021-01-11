@@ -19,7 +19,7 @@ jobs:
           node-version: 13.13
       - name: Remove old staging folders
         run:
-          node ./.github/workflows/cleanup-staging.js
+          CLEANUP_TOKEN=${{ secrets.CLEANUP_TOKEN }} node .github/workflows/cleanup-staging.js
       - name: Commit changes
         run:  |
           git config --global user.email "contact@akeneo.com" && \

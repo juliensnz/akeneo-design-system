@@ -1,28 +1,40 @@
-const {execSync} = require('child_process');
+'use strict';
+
+const {execSync, exec} = require('child_process');
 const fs = require('fs');
-const https = require('https');
 
 const getIsPRStillOpen = (prID) => {
   return new Promise((resolve, reject) => {
-    https.get(`https://github.com/akeneo/akeneo-design-system/tree/gh-pages${prID}`, function(res) {
-      resolve(404 !== res.statusCode);
-    }).on('error', function(e) {
-      reject(e)
-    });
+    console.log(`curl https://api.github.com/repos/akeneo/pim-community-dev/pulls/${prID} --header 'authorization: Bearer ${process.env.CLEANUP_TOKEN}'`)
+    exec(
+      `curl https://api.github.com/repos/akeneo/pim-community-dev/pulls/${prID} --header 'authorization: Bearer ${process.env.CLEANUP_TOKEN}'`, function(error, response) {
+      console.log(response);
+      const pullRequest = JSON.parse(response);
+      console.log(pullRequest.state);
+      if (undefined === pullRequest.state) {
+        reject('Cannot check PR status');
+      }
+
+      resolve(undefined !== pullRequest.state && pullRequest.state === 'open')
+    })
   })
 }
 
 const cleanupStagingEnvs = async () => {
   const allFiles = fs.readdirSync('./')
-
-  const branchIdPattern = /^[0-9]{5}$/g;
-  const stagingFolders = allFiles.filter(fileName => branchIdPattern.test(fileName))
+  const stagingFolders = allFiles.filter(fileName => (/^[0-9]{5}$/g).test(fileName))
 
   for (const stagingfolder of stagingFolders) {
-    const isPRStillOpen = await getIsPRStillOpen(stagingfolder);
-    if (!isPRStillOpen) {
-      fs.rmdirSync(stagingfolder, { recursive: true });
-      execSync(`git rm -r ${stagingfolder}`);
+    try {
+      console.log(stagingfolder);
+      const isPRStillOpen = await getIsPRStillOpen(stagingfolder);
+      if (!isPRStillOpen) {
+        fs.rmdirSync(stagingfolder, { recursive: true });
+        execSync(`git rm -r ${stagingfolder}`);
+      }
+    } catch (error) {
+      console.error(error);
+      continue;
     }
   }
 }
