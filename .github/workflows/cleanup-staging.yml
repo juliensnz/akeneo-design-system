@@ -11,7 +11,8 @@ jobs:
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
-        ref: gh-pages
+        with:
+            ref: gh-pages
       - name: Prepare node
         uses: actions/setup-node@v1
         with:
