@@ -5,12 +5,9 @@ const fs = require('fs');
 
 const getIsPRStillOpen = (prID) => {
   return new Promise((resolve, reject) => {
-    console.log(`curl https://api.github.com/repos/akeneo/pim-community-dev/pulls/${prID} --header 'authorization: Bearer ${process.env.CLEANUP_TOKEN}'`)
     exec(
       `curl https://api.github.com/repos/akeneo/pim-community-dev/pulls/${prID} --header 'authorization: Bearer ${process.env.CLEANUP_TOKEN}'`, function(error, response) {
-      console.log(response);
       const pullRequest = JSON.parse(response);
-      console.log(pullRequest.state);
       if (undefined === pullRequest.state) {
         reject('Cannot check PR status');
       }
@@ -26,7 +23,6 @@ const cleanupStagingEnvs = async () => {
 
   for (const stagingfolder of stagingFolders) {
     try {
-      console.log(stagingfolder);
       const isPRStillOpen = await getIsPRStillOpen(stagingfolder);
       if (!isPRStillOpen) {
         fs.rmdirSync(stagingfolder, { recursive: true });
